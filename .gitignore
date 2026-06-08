@@ -1,0 +1,10 @@
+# Sensitive, never commit. Put keys, drafts, ciphertexts, etc. in .txt
+*.txt
+
+# Backup files
+*.bak
+
+# Python / uv
+.venv/
+__pycache__/
+*.pyc

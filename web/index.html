@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Postcard</title>
+<style>
+  :root {
+    --bg: #f5f3ef;
+    --card: #ffffff;
+    --border: #e2dfd9;
+    --text: #1a1a1a;
+    --muted: #6b6b6b;
+    --accent: #4a6741;
+    --accent-hover: #3a5333;
+    --error: #b14848;
+    --mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 2.5rem 1rem;
+    line-height: 1.5;
+  }
+  .card {
+    max-width: 640px;
+    margin: 0 auto;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem 2.25rem 2.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  h1 {
+    margin: 0 0 0.25rem;
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.875rem;
+    margin: 0 0 1.5rem;
+  }
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 4px;
+    margin: 0 0 1.5rem;
+  }
+  .tabs button {
+    flex: 1;
+    margin: 0;
+    width: auto;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    color: var(--muted);
+    font-weight: 500;
+    font-size: 0.875rem;
+    border-radius: 6px;
+  }
+  .tabs button.active {
+    background: var(--card);
+    color: var(--text);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+  .tabs button:hover:not(.active) {
+    background: rgba(0,0,0,0.04);
+    color: var(--text);
+  }
+  label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin: 1.1rem 0 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  label:first-of-type { margin-top: 0; }
+  textarea, input {
+    width: 100%;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.6rem 0.75rem;
+    color: var(--text);
+    resize: vertical;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  textarea { line-height: 1.4; }
+  textarea:focus, input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: var(--card);
+  }
+  textarea[readonly], input[readonly] {
+    background: var(--bg);
+    color: var(--text);
+  }
+  .ciphertext { min-height: 8rem; }
+  .plaintext { min-height: 7rem; }
+  button {
+    margin-top: 1.5rem;
+    width: 100%;
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.8rem;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  button:hover:not(:disabled):not(.link):not(.copy) { background: var(--accent-hover); }
+  button:disabled { opacity: 0.5; cursor: progress; }
+  button.link {
+    all: unset;
+    color: var(--accent);
+    text-decoration: underline;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.8rem;
+  }
+  button.link:hover { color: var(--accent-hover); }
+  .copy-row {
+    display: flex;
+    gap: 0.4rem;
+    align-items: stretch;
+  }
+  .copy-row > input, .copy-row > textarea {
+    flex: 1;
+    min-width: 0;
+  }
+  button.copy {
+    margin: 0;
+    width: auto;
+    padding: 0.6rem 0.9rem;
+    background: var(--bg);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 500;
+    flex-shrink: 0;
+    align-self: flex-start;
+  }
+  textarea.ciphertext[readonly] { min-height: 0; resize: none; }
+  #enc-go { margin-bottom: 2.5rem; }
+  button.copy:hover { background: var(--card); color: var(--text); border-color: var(--accent); }
+  button.copy.copied { color: var(--accent); border-color: var(--accent); }
+  .output {
+    margin-top: 1.5rem;
+    padding: 1rem 1.1rem;
+    background: var(--bg);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    border-left-width: 3px;
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .output.success { border-left-color: var(--accent); }
+  .output.error {
+    color: var(--error);
+    border-left-color: var(--error);
+  }
+  .panel-footer {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 1.25rem;
+    justify-content: flex-end;
+  }
+  .footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.72rem;
+    margin-top: 1.75rem;
+    letter-spacing: 0.02em;
+  }
+</style>
+</head>
+<body>
+<main class="card">
+  <h1>Postcard</h1>
+  <p class="subtitle">Encrypts and decrypts entirely in your browser. Nothing leaves the page.</p>
+
+  <div class="tabs">
+    <button type="button" class="active" data-mode="decrypt">Decrypt</button>
+    <button type="button" data-mode="encrypt">Encrypt</button>
+  </div>
+
+  <section class="panel" data-panel="decrypt">
+    <label for="dec-key">Key (base64)</label>
+    <input id="dec-key" autocomplete="off" spellcheck="false" placeholder="from whatever channel I sent it to you">
+
+    <label for="dec-nonce">Nonce (24 hex chars)</label>
+    <input id="dec-nonce" autocomplete="off" spellcheck="false" placeholder="from the postcard">
+
+    <label for="dec-ciphertext">Ciphertext (base64)</label>
+    <textarea id="dec-ciphertext" class="ciphertext" autocomplete="off" spellcheck="false" placeholder="from the postcard"></textarea>
+
+    <button id="dec-go">Decrypt</button>
+    <div id="dec-output" class="output" hidden></div>
+
+    <div class="panel-footer">
+      <button type="button" class="link" id="dec-example">Load example</button>
+      <button type="button" class="link" id="dec-clear">Clear all</button>
+    </div>
+  </section>
+
+  <section class="panel" data-panel="encrypt" hidden>
+    <label for="enc-plaintext">Plaintext</label>
+    <textarea id="enc-plaintext" class="plaintext" autocomplete="off" spellcheck="false" placeholder="your postcard message"></textarea>
+
+    <label for="enc-key">Key (base64, optional - a fresh one is generated if blank)</label>
+    <input id="enc-key" autocomplete="off" spellcheck="false" placeholder="leave blank to generate">
+
+    <button id="enc-go">Encrypt</button>
+
+    <div id="enc-output" hidden>
+      <label>Key (base64) - send via email</label>
+      <div class="copy-row">
+        <input id="enc-out-key" readonly>
+        <button type="button" class="copy" data-target="enc-out-key">Copy</button>
+      </div>
+
+      <label>Nonce (hex) - write on the postcard</label>
+      <div class="copy-row">
+        <input id="enc-out-nonce" readonly>
+        <button type="button" class="copy" data-target="enc-out-nonce">Copy</button>
+      </div>
+
+      <label>Ciphertext (base64) - write on the postcard</label>
+      <div class="copy-row">
+        <textarea id="enc-out-ciphertext" class="ciphertext" readonly></textarea>
+        <button type="button" class="copy" data-target="enc-out-ciphertext">Copy</button>
+      </div>
+    </div>
+    <div id="enc-error" class="output error" hidden></div>
+
+    <div class="panel-footer">
+      <button type="button" class="link" id="enc-clear">Clear all</button>
+    </div>
+  </section>
+
+  <div class="footer" id="pipeline-footer"></div>
+</main>
+<script type="module">
+  import { decryptPostcard, encryptPostcard } from "./decrypt.js";
+
+  const $ = (id) => document.getElementById(id);
+
+  // Tab switching - visibility only, so input values cache across switches.
+  const tabs = document.querySelectorAll(".tabs button");
+  const panels = document.querySelectorAll(".panel");
+  const footer = $("pipeline-footer");
+  const PIPELINE = {
+    decrypt: "b64 → Reed-Solomon(nsym=20) → AES-256-GCM → zlib → utf-8",
+    encrypt: "utf-8 → zlib → AES-256-GCM → Reed-Solomon(nsym=20) → b64",
+  };
+  function setMode(mode) {
+    tabs.forEach((t) => t.classList.toggle("active", t.dataset.mode === mode));
+    panels.forEach((p) => { p.hidden = p.dataset.panel !== mode; });
+    footer.textContent = PIPELINE[mode];
+  }
+  tabs.forEach((tab) => tab.addEventListener("click", () => setMode(tab.dataset.mode)));
+  setMode("decrypt");
+
+  // === Decrypt panel ===
+  const decBtn = $("dec-go");
+  const decOut = $("dec-output");
+
+  function showDec(text, kind) {
+    decOut.hidden = false;
+    decOut.textContent = text;
+    decOut.classList.remove("success", "error");
+    decOut.classList.add(kind);
+  }
+
+  decBtn.addEventListener("click", async () => {
+    decBtn.disabled = true;
+    decBtn.textContent = "Decrypting...";
+    try {
+      const plaintext = await decryptPostcard(
+        $("dec-key").value, $("dec-nonce").value, $("dec-ciphertext").value,
+      );
+      showDec(plaintext, "success");
+    } catch (e) {
+      showDec(`Decryption failed: ${e.message || e}`, "error");
+    } finally {
+      decBtn.disabled = false;
+      decBtn.textContent = "Decrypt";
+    }
+  });
+
+  const EXAMPLE = {
+    key: "VgALHyBRUxiMhiMdj557Lv6kC3G1SDz841bhbFP1Ot8=",
+    nonce: "8e4b412b51aba390921379fa",
+    ciphertext: [
+      "U416ZzoKcNPJwawxCss61xzuwicsHfN6htsN+ItBlUhzzXxCpX",
+      "Hjr47OPpMsouy0CUGyK1EPZStR+5qnWxT7h7NZnT939AAdfAir",
+      "Cpzt0x4nvi2Comed/rG/0Gu78QJLBeK5oxzqBm2NlMvaTg==",
+    ].join("\n"),
+  };
+  $("dec-example").addEventListener("click", () => {
+    $("dec-key").value = EXAMPLE.key;
+    $("dec-nonce").value = EXAMPLE.nonce;
+    $("dec-ciphertext").value = EXAMPLE.ciphertext;
+    decOut.hidden = true;
+  });
+
+  $("dec-clear").addEventListener("click", () => {
+    $("dec-key").value = "";
+    $("dec-nonce").value = "";
+    $("dec-ciphertext").value = "";
+    decOut.hidden = true;
+  });
+
+  // === Encrypt panel ===
+  const encBtn = $("enc-go");
+  const encOut = $("enc-output");
+  const encErr = $("enc-error");
+
+  encBtn.addEventListener("click", async () => {
+    encBtn.disabled = true;
+    encBtn.textContent = "Encrypting...";
+    try {
+      const result = await encryptPostcard($("enc-plaintext").value, $("enc-key").value);
+      $("enc-out-key").value = result.keyB64;
+      $("enc-out-nonce").value = result.nonceHex;
+      $("enc-out-ciphertext").value = wrap(result.ciphertextB64, 50);
+      encOut.hidden = false;
+      encErr.hidden = true;
+      autoResize($("enc-out-ciphertext"));
+    } catch (e) {
+      encErr.textContent = `Encryption failed: ${e.message || e}`;
+      encErr.hidden = false;
+      encOut.hidden = true;
+    } finally {
+      encBtn.disabled = false;
+      encBtn.textContent = "Encrypt";
+    }
+  });
+
+  function autoResize(el, maxPx = 400) {
+    el.style.height = "auto";
+    const desired = Math.min(el.scrollHeight, maxPx);
+    el.style.height = desired + "px";
+    const overflowing = el.scrollHeight > maxPx;
+    el.style.overflowY = overflowing ? "auto" : "hidden";
+    el.style.resize = overflowing ? "vertical" : "none";
+  }
+
+  $("enc-clear").addEventListener("click", () => {
+    $("enc-plaintext").value = "";
+    $("enc-key").value = "";
+    $("enc-out-key").value = "";
+    $("enc-out-nonce").value = "";
+    $("enc-out-ciphertext").value = "";
+    encOut.hidden = true;
+    encErr.hidden = true;
+  });
+
+  function wrap(s, width) {
+    const parts = [];
+    for (let i = 0; i < s.length; i += width) parts.push(s.slice(i, i + width));
+    return parts.join("\n");
+  }
+
+  // Copy buttons on encrypt output.
+  document.querySelectorAll("button.copy").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const target = $(btn.dataset.target);
+      try {
+        await navigator.clipboard.writeText(target.value);
+        btn.classList.add("copied");
+        const orig = btn.textContent;
+        btn.textContent = "Copied";
+        setTimeout(() => { btn.textContent = orig; btn.classList.remove("copied"); }, 1200);
+      } catch {
+        target.select();
+        document.execCommand("copy");
+      }
+    });
+  });
+
+  // Ctrl/Cmd+Enter submits the visible panel.
+  document.querySelectorAll("input, textarea").forEach((el) => {
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        const activeMode = document.querySelector(".tabs button.active").dataset.mode;
+        (activeMode === "decrypt" ? decBtn : encBtn).click();
+      }
+    });
+  });
+</script>
+</body>
+</html>

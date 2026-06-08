@@ -1,0 +1,13 @@
+{
+  "name": "postcard-encryption-web",
+  "version": "0.1.0",
+  "description": "Browser-side decrypter for the postcard pipeline. Zero runtime dependencies by design - everything is browser-native (Web Crypto, DecompressionStream) plus a vendored Reed-Solomon decoder.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node test.mjs"
+  }
+}
