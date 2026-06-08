@@ -1,5 +1,8 @@
 # Postcard Encryption
 
+[![Pages](https://img.shields.io/github/deployments/jakmannob/postcard-encryption/github-pages?label=pages)](https://jakmannob.github.io/postcard-encryption/)
+[![Live demo](https://img.shields.io/badge/demo-live-4a6741?logo=github)](https://jakmannob.github.io/postcard-encryption/)
+
 In case I've ever sent you an encrypted postcard (first of all I'm glad to know you :) ), you can decrypt it with the help of this repo if you don't want to implement it yourself.
 You can also encrypt postcards with this code.
 For both functions you can either use the Python script, host the webpage locally or use this repo's GitHub pages.
@@ -12,12 +15,12 @@ This project was quickly vibe-coded on a vacation with the help of Claude Opus 4
 plaintext  <->  zlib  <->  AES-256-GCM  <->  Reed–Solomon  <->  base64  <->  postcard ciphertext
 ```
 
-| Stage | Why |
-|---|---|
-| zlib | Compresses natural-language redundancy to save handwritten chars
-| AES-256-GCM | Encryption step |
+| Stage                   | Why                                                                                                                                                            |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| zlib                    | Compresses natural-language redundancy to save handwritten chars                                                                                               |
+| AES-256-GCM             | Encryption step                                                                                                                                                |
 | Reed–Solomon (255, 235) | 20 parity bytes per 255-byte block. Corrects up to **10 byte errors per block** - so that your decryption input ciphertext does not have to be 100% correct :) |
-| Base64 | Hand-writeable charset (`A–Z a–z 0–9 + / =`), I hope you can read my handwriting. Probably the most information-dense encoding I can write on a postcard |
+| Base64                  | Hand-writeable charset (`A–Z a–z 0–9 + / =`), I hope you can read my handwriting. Probably the most information-dense encoding I can write on a postcard       |
 
 The 12-byte AES-GCM nonce is randomly generated per encryption and noted to the postcard in **hex** (24 chars).
 It's public and skips RS protection.
@@ -55,12 +58,12 @@ uv sync                    # creates .venv and installs locked deps
 
 All artifacts share the `message` stem (configurable via `MSG` in the Makefile):
 
-| File | Role |
-|---|---|
-| `message.txt` | plaintext draft (input to encrypt) |
-| `message.key.txt` | 32-byte AES key, base64 |
-| `message.enc.txt` | ciphertext, base64, line-breaks are ignored, feel free to adjust |
-| `message.nonce.txt` | 12-byte GCM nonce, hex |
+| File                | Role                                                             |
+| ------------------- | ---------------------------------------------------------------- |
+| `message.txt`       | plaintext draft (input to encrypt)                               |
+| `message.key.txt`   | 32-byte AES key, base64                                          |
+| `message.enc.txt`   | ciphertext, base64, line-breaks are ignored, feel free to adjust |
+| `message.nonce.txt` | 12-byte GCM nonce, hex                                           |
 
 ```sh
 # 1. Generate a one-time key:
